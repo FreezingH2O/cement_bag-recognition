@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cement bag image browser</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f4f6f9;color:#182237}
+header{position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid #dde3eb;padding:18px 28px;box-shadow:0 2px 8px #18223708}
+.top,.controls{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}h1{font-size:23px;margin:0 0 5px}.subtitle{font-size:13px;color:#58677c;margin:0}.badge{font-size:12px;background:#e8f3ef;color:#196247;border:1px solid #c8e6d9;border-radius:30px;padding:7px 11px}
+.controls{margin-top:18px;justify-content:flex-start}form{display:flex;gap:10px;align-items:end;flex-wrap:wrap;flex:1}input,select{border:1px solid #cbd5e1;padding:10px 8px;border-radius:7px;font:inherit;font-size:14px;width:100%;background:#fff;color:#182237}fieldset{border:1px solid #dde3eb;border-radius:8px;padding:8px 10px 12px;margin:0;flex:1;min-width:min(100%,390px);max-width:480px}legend{font-size:13px;font-weight:600;padding:0 5px}.timeparts{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 1fr;gap:8px}.timefield{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#58677c;min-width:0}select:disabled{background:#eef1f5;color:#8893a4}.filter-error{font-size:12px;color:#ac2430;margin:7px 0 0}.filter-error:empty{display:none}.filter-note{margin:10px 0 0;font-size:12px;color:#58677c}.range-label{font-size:12px;color:#1c4ab0;margin:7px 0 0}button{border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#182237;padding:10px 14px;font:inherit;font-size:14px;cursor:pointer}button:hover{background:#eaf0f7}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #799ded;outline-offset:2px}button.primary{background:#1c4ab0;color:white;border-color:#1c4ab0}button:disabled{opacity:.5;cursor:default}.size{display:flex;align-items:center;gap:8px;font-size:13px;color:#58677c}.size input{width:110px;min-width:0;padding:0}.status{font-size:13px;color:#58677c;margin-left:auto}
+main{padding:24px 28px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile,210px),1fr));gap:16px}.card{padding:0;overflow:hidden;background:#fff;text-align:left;border:1px solid #dde3eb;border-radius:10px;box-shadow:0 2px 6px #18223705}.card:hover{border-color:#7397d9;box-shadow:0 5px 15px #18223712}.photo{width:100%;aspect-ratio:4/3;object-fit:contain;display:block;background:#e5eaf0}.name{padding:10px 12px 4px;font-size:12px;overflow-wrap:anywhere}.meta{padding:0 12px 12px;font-size:11px;color:#748299}.footer{display:flex;justify-content:center;align-items:center;gap:16px;margin:28px 0;color:#58677c;font-size:13px}.error{color:#ac2430}.empty{padding:64px;text-align:center;color:#58677c}.help{font-size:12px;color:#748299;text-align:center;margin:18px 0}
+.searchfield{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#58677c;flex:1 0 100%}
+@media(max-width:650px){.controls>form{flex:1 0 100%;min-width:0}.controls>form fieldset{min-width:100%;max-width:none}.timeparts{gap:5px}.timefield select{font-size:13px;padding:10px 5px}}
+dialog{border:0;border-radius:12px;background:#142033;color:#fff;width:min(1180px,95vw);max-height:95vh;padding:16px;box-shadow:0 20px 80px #0006}dialog::backdrop{background:#08111dde}.viewerbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}.viewerbar p{flex:1;font-size:13px;overflow-wrap:anywhere;margin:0}.viewerbar button{background:#25344b;color:#fff;border-color:#41536c}.full{display:block;max-width:100%;max-height:74vh;margin:auto;object-fit:contain}.viewerfoot{font-size:12px;color:#aab9ce;text-align:center;margin:12px 0 0}@media(max-width:650px){header{padding:14px}main{padding:16px}.grid{gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}.size{display:none}.status{margin-left:0}.badge{display:none}}
+</style>
+</head>
+<body>
+<header>
+ <div class="top"><div><h1>Cement bag images</h1><p class="subtitle" id="source">Connecting to your S3 bucket…</p></div><span class="badge">Viewing from S3 · no image files saved</span></div>
+ <div class="controls">
+  <form id="filter">
+   <label class="searchfield">Filename search <input id="search" type="search" aria-label="Filename search" placeholder="Starts with… e.g. 1970_01_17_05" autocomplete="off"></label>
+   <fieldset><legend>From</legend><div class="timeparts">
+    <label class="timefield">Year<select id="from-year" aria-label="From year"><option value="">Any</option></select></label>
+    <label class="timefield">Month<select id="from-month" aria-label="From month"><option value="">Any</option></select></label>
+    <label class="timefield">Day<select id="from-day" aria-label="From day"><option value="">Any</option></select></label>
+    <label class="timefield">Hour<select id="from-hour" aria-label="From hour"><option value="">Any</option></select></label>
+    <label class="timefield">Minute<select id="from-minute" aria-label="From minute"><option value="">Any</option></select></label>
+   </div></fieldset>
+   <fieldset><legend>Through</legend><div class="timeparts">
+    <label class="timefield">Year<select id="to-year" aria-label="Through year"><option value="">Any</option></select></label>
+    <label class="timefield">Month<select id="to-month" aria-label="Through month"><option value="">Any</option></select></label>
+    <label class="timefield">Day<select id="to-day" aria-label="Through day"><option value="">Any</option></select></label>
+    <label class="timefield">Hour<select id="to-hour" aria-label="Through hour"><option value="">Any</option></select></label>
+    <label class="timefield">Minute<select id="to-minute" aria-label="Through minute"><option value="">Any</option></select></label>
+   </div></fieldset>
+   <button class="primary" id="apply">Apply filter</button><button id="clear" type="button">Show all</button>
+  </form>
+  <label class="size">Thumbnail size <input id="size" type="range" min="150" max="360" value="210"></label>
+  <span class="status" id="status" role="status">Loading…</span>
+ </div>
+ <p class="filter-note">Any ignores that component. Choose matching From and Through values to select one day or hour; minute is the smallest unit.</p>
+ <p class="filter-error" id="filter-error" role="alert"></p>
+ <p class="range-label" id="range">Showing all filename times</p>
+</header>
+<main>
+ <div class="grid" id="grid"></div>
+ <div class="footer" id="sentinel"><span id="message">Loading images…</span><button id="more" hidden>Load more</button></div>
+ <p class="help">Scroll to browse. Click an image to enlarge it. Use ← and → inside the preview.</p>
+</main>
+<dialog id="viewer" aria-label="Image preview">
+ <div class="viewerbar"><button id="previous" aria-label="Previous image">←</button><button id="next" aria-label="Next image">→</button><p id="filename"></p><button id="close" aria-label="Close preview">Close</button></div>
+ <img class="full" id="full" alt="">
+ <p class="viewerfoot" id="viewerfoot"></p>
+</dialog>
+<script>
+const $=id=>document.getElementById(id);
+let images=[],token=null,finished=false,busy=false,filterFrom=[],filterTo=[],filterSearch='',generation=0,selection=0,visible=true,failed=false;
+const imageURL=key=>'/image?key='+encodeURIComponent(key);
+const bytes=n=>n<1048576?(n/1024).toFixed(0)+' KB':(n/1048576).toFixed(1)+' MB';
+function card(item,index){
+ const button=document.createElement('button');button.className='card';button.setAttribute('aria-label','View '+item.key);
+ const img=document.createElement('img');img.className='photo';img.loading='lazy';img.decoding='async';img.alt=item.key;img.referrerPolicy='no-referrer';img.src=imageURL(item.key);
+ img.onerror=()=>{img.alt='Image could not load: '+item.key;button.title='Click to retry the full image';};
+ const name=document.createElement('div');name.className='name';name.textContent=item.key;
+ const meta=document.createElement('div');meta.className='meta';meta.textContent=bytes(item.bytes);
+ button.append(img,name,meta);button.onclick=()=>show(index);return button;
+}
+async function load(){
+ if(busy||finished)return;
+ busy=true;failed=false;const current=generation;
+ $('message').className='';$('message').textContent='Loading more images…';$('more').hidden=true;
+ try{
+  const query=new URLSearchParams({fromparts:JSON.stringify(filterFrom),toparts:JSON.stringify(filterTo)});if(filterSearch)query.set('prefix',filterSearch);if(token)query.set('token',token);
+  const result=await fetchReady('/api/list?'+query);
+  if(current!==generation)return;
+  const fragment=document.createDocumentFragment();
+  result.images.forEach(item=>{const index=images.length;images.push(item);fragment.append(card(item,index));});$('grid').append(fragment);
+  token=result.next;finished=!token;
+  $('status').textContent=images.length.toLocaleString()+' images loaded';
+  if($('viewer').open){$('next').disabled=selection===images.length-1;$('viewerfoot').textContent=(selection+1)+' of '+images.length+' loaded · '+bytes(images[selection].bytes);}
+  $('message').textContent=finished?(images.length?'All matching images loaded.':'No matching images found.'):'Scroll down for more images';
+  $('more').hidden=finished;
+ }catch(error){if(current===generation){failed=true;$('message').textContent=error.message;$('message').className='error';$('more').hidden=false;$('more').textContent='Retry';}}
+ finally{if(current===generation){busy=false;if(visible&&!finished&&!failed)setTimeout(load,100);}}
+}
+function show(index){
+ if(index<0||index>=images.length)return;selection=index;const item=images[index];
+ $('filename').textContent=item.key;$('full').alt=item.key;$('full').src=imageURL(item.key);
+ $('viewerfoot').textContent=(index+1)+' of '+images.length+' loaded · '+bytes(item.bytes);
+ $('previous').disabled=index===0;$('next').disabled=index===images.length-1;
+ if(!$('viewer').open)$('viewer').showModal();
+ if(index>=images.length-5&&!finished)load();
+}
+$('full').onerror=()=>{$('viewerfoot').textContent='Image could not load. Check your connection and S3 permissions.';};
+$('previous').onclick=()=>show(selection-1);$('next').onclick=()=>show(selection+1);
+$('close').onclick=()=>{$('viewer').close();$('full').removeAttribute('src');};
+$('viewer').addEventListener('click',event=>{if(event.target===$('viewer'))$('close').click();});
+document.addEventListener('keydown',event=>{if(!$('viewer').open)return;if(event.key==='ArrowLeft'){event.preventDefault();show(selection-1);}if(event.key==='ArrowRight'){event.preventDefault();show(selection+1);}});
+function applyFilter(){
+ const from=selectedTime('from'),to=selectedTime('to');
+ if(pendingOptions&&(from.some(Boolean)||to.some(Boolean)))return;
+ const startMask=from.map(Boolean),endMask=to.map(Boolean);
+ if(JSON.stringify(startMask)===JSON.stringify(endMask)&&from.filter(Boolean).join('_')>to.filter(Boolean).join('_')){
+  $('filter-error').textContent='Through must be the same as or later than From for the selected components.';return;
+ }
+ $('filter-error').textContent='';
+ generation++;filterFrom=from;filterTo=to;filterSearch=$('search').value.trim();images=[];token=null;finished=false;busy=false;failed=false;
+ $('grid').replaceChildren();$('more').textContent='Load more';$('status').textContent='Loading…';
+ const display=values=>values.map(value=>value||'Any').slice(0,3).join('-')+' '+values.slice(3).map(value=>value||'Any').join(':');
+ $('range').textContent=from.some(Boolean)||to.some(Boolean)?'Filename time: '+display(from)+' → '+display(to)+' (ending minute included)':'Showing all filename times';
+ if(filterSearch)$('range').textContent+=' · Filename starts with: '+filterSearch;
+ load();
+}
+const parts=['year','month','day','hour','minute'],optionCache=new Map(),optionGeneration={from:0,to:0};
+let pendingOptions=0;
+function select(side,part){return $(side+'-'+part);}
+function selectedTime(side){return parts.map(part=>select(side,part).value);}
+async function fetchReady(url){
+ while(true){
+  const response=await fetch(url,{cache:'no-store'}),data=await response.json();
+  if(response.status===202){$('status').textContent='Preparing filters… '+data.count.toLocaleString()+' images';await new Promise(resolve=>setTimeout(resolve,1000));continue;}
+  if(!response.ok)throw new Error(data.error||'Could not load filename filters.');
+  return data;
+ }
+}
+function choices(level,parents){
+ const key=level+':'+JSON.stringify(parents);
+ if(!optionCache.has(key))optionCache.set(key,fetchReady('/api/time-options?'+new URLSearchParams({level,parents:JSON.stringify(parents)})).then(data=>data.values).catch(error=>{optionCache.delete(key);throw error;}));
+ return optionCache.get(key);
+}
+function fillChoices(side,part,values){
+ const field=select(side,part),old=field.value;
+ field.replaceChildren(new Option('Any',''),...values.map(value=>new Option(value,value)));
+ field.value=values.includes(old)?old:'';field.disabled=false;
+}
+async function refreshChildren(side,index){
+ const revision=++optionGeneration[side];$('filter-error').textContent='';
+ pendingOptions++;$('apply').disabled=true;
+ try{
+  for(let child=index+1;child<parts.length;child++){
+   const parents=parts.slice(0,child).map(part=>select(side,part).value);
+   const values=await choices(parts[child],parents);if(revision!==optionGeneration[side])return;
+   fillChoices(side,parts[child],values);
+  }
+ }catch(error){if(revision===optionGeneration[side])$('filter-error').textContent=error.message;}
+ finally{pendingOptions--;$('apply').disabled=!!pendingOptions;}
+}
+for(const side of ['from','to'])parts.forEach((part,index)=>{select(side,part).onchange=()=>refreshChildren(side,index);});
+async function initializeChoices(){
+ pendingOptions++;$('apply').disabled=true;
+ try{const data=await fetchReady('/api/time-options?level=all');for(const side of ['from','to'])for(const part of parts)fillChoices(side,part,data.values[part]);}
+ catch(error){$('filter-error').textContent=error.message;}
+ finally{pendingOptions--;$('apply').disabled=!!pendingOptions;}
+}
+$('filter').onsubmit=event=>{event.preventDefault();applyFilter();};
+$('clear').onclick=()=>{$('search').value='';for(const side of ['from','to']){optionGeneration[side]++;for(const part of parts)select(side,part).value='';}initializeChoices();applyFilter();};
+$('size').oninput=()=>{$('grid').style.setProperty('--tile',$('size').value+'px');};
+$('more').onclick=load;
+new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible&&!failed)load();},{rootMargin:'300px'}).observe($('sentinel'));
+fetch('/api/config',{cache:'no-store'}).then(r=>r.json()).then(config=>{$('source').textContent='s3://'+config.bucket+'/ · '+config.region;}).catch(()=>{$('source').textContent='Local S3 viewer';});
+initializeChoices();
+load();
+</script>
+</body>
+</html>

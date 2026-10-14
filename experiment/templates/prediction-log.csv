@@ -1,0 +1,1 @@
+run_id,experiment_id,image_id,gallery_pass,gallery_version,true_sku_id,gallery_membership,decision_state,predicted_sku_id,top1_sku,top1_score,top2_sku,top2_score,top3_sku,top3_score,score_margin,ocr_invoked,ocr_output_json,evidence_json,crop_ms,preprocess_ms,visual_ms,search_ms,ocr_ms,fusion_ms,queue_ms,worker_ms,capture_to_result_ms,error_reason

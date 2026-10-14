@@ -1,0 +1,57 @@
+# Python environments and generated files
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+.aws/
+*accessKeys.csv
+*.pem
+*.key
+
+# Local datasets, downloads, and inventories; keep the setup guide
+/data/*
+!/data/S3-GUIDE.md
+
+# Temporary previews and per-run results; keep experiment templates
+/tmp/
+/experiment/runs/
+
+# Downloaded models and training artifacts
+/models/
+/checkpoints/
+/wandb/
+/mlruns/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+
+# Editor, operating-system, and runtime clutter
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.log
+node_modules/
